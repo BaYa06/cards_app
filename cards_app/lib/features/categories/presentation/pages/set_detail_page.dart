@@ -4,6 +4,9 @@ import '../../../../data/models/card_progress.dart';
 import '../../../../data/repositories/app_repository.dart';
 import '../../domain/entities/category_set.dart';
 import 'add_word_page.dart';
+import '../widgets/study_mode_sheet.dart';
+import '../../../study/presentation/pages/flashcards_page.dart';
+import '../../../study/presentation/pages/match_game_page.dart';
 
 class SetDetailPage extends StatefulWidget {
   final CategorySet set;
@@ -605,7 +608,7 @@ class _SetDetailPageState extends State<SetDetailPage> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: _openStudyModal,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _primaryColor,
                       foregroundColor: Colors.white,
@@ -647,6 +650,42 @@ class _SetDetailPageState extends State<SetDetailPage> {
         .then((value) {
       if (value == true) {
         _loadWords();
+      }
+    });
+  }
+
+  void _openStudyModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withOpacity(0.3),
+      builder: (_) => StudyModeSheet(set: widget.set, wordsCount: _wordCount),
+    ).then((result) {
+      if (result is Map) {
+        final mode = result['mode'] as String?;
+        
+        if (mode == 'flashcards') {
+          Navigator.of(context).push(
+            AppRouter.slideRoute(
+              FlashcardsPage(
+                set: widget.set,
+                onlyUnknown: result['onlyUnknown'] as bool? ?? false,
+                showMnemonic: result['showMnemonic'] as bool? ?? true,
+                limit: result['count'] as int?,
+              ),
+            ),
+          );
+        } else if (mode == 'match') {
+          Navigator.of(context).push(
+            AppRouter.slideRoute(
+              MatchGamePage(
+                set: widget.set,
+                pairsCount: result['count'] as int? ?? 10,
+              ),
+            ),
+          );
+        }
       }
     });
   }

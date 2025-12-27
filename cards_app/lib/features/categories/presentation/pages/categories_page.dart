@@ -5,6 +5,9 @@ import '../../../../data/repositories/app_repository.dart';
 import '../../domain/entities/category_set.dart';
 import '../pages/set_detail_page.dart';
 import '../widgets/create_set_sheet.dart';
+import '../widgets/study_mode_sheet.dart';
+import '../../../study/presentation/pages/flashcards_page.dart';
+import '../../../study/presentation/pages/match_game_page.dart';
 
 /// Страница со списком наборов (категорий)
 class CategoriesPage extends StatefulWidget {
@@ -640,7 +643,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () => _openStudyModal(item),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: isDark ? Colors.grey.shade800 : Colors.grey.shade100,
                       foregroundColor: isDark ? Colors.grey.shade200 : Colors.grey.shade800,
@@ -676,6 +679,42 @@ class _CategoriesPageState extends State<CategoriesPage> {
         SetDetailPage(set: item),
       ),
     );
+  }
+
+  void _openStudyModal(CategorySet item) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withOpacity(0.3),
+      builder: (_) => StudyModeSheet(set: item, wordsCount: item.words),
+    ).then((result) {
+      if (result is Map) {
+        final mode = result['mode'] as String?;
+        
+        if (mode == 'flashcards') {
+          Navigator.of(context).push(
+            AppRouter.slideRoute(
+              FlashcardsPage(
+                set: item,
+                onlyUnknown: result['onlyUnknown'] as bool? ?? false,
+                showMnemonic: result['showMnemonic'] as bool? ?? true,
+                limit: result['count'] as int?,
+              ),
+            ),
+          );
+        } else if (mode == 'match') {
+          Navigator.of(context).push(
+            AppRouter.slideRoute(
+              MatchGamePage(
+                set: item,
+                pairsCount: result['count'] as int? ?? 10,
+              ),
+            ),
+          );
+        }
+      }
+    });
   }
 
   Widget _buildErrorState(bool isDark) {
