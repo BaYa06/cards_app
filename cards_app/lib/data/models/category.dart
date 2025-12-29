@@ -62,6 +62,12 @@ class Category {
 
   /// Создание из JSON
   factory Category.fromJson(Map<String, dynamic> json) {
+    bool _toBool(dynamic value) {
+      if (value is bool) return value;
+      if (value is num) return value != 0;
+      return false;
+    }
+
     return Category(
       id: (json['id'] ?? '').toString(),
       name: (json['name'] ?? '') as String? ?? '',
@@ -69,8 +75,8 @@ class Category {
       icon: (json['icon'] ?? 'category') as String? ?? 'category',
       color: (json['color'] as int?) ?? 0xFF2D65E6,
       orderIndex: json['order_index'] as int? ?? 0,
-      isPremium: json['is_premium'] as bool? ?? false,
-      isCustom: json['is_custom'] as bool? ?? false,
+      isPremium: _toBool(json['is_premium']),
+      isCustom: _toBool(json['is_custom']),
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
           : DateTime.now(),
